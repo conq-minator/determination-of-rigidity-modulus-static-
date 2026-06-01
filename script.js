@@ -1,0 +1,328 @@
+// --- PHYSICS LOGIC ---
+const MATERIALS = { iron: 70e9, steel: 79e9, copper: 48e9 };
+
+// Standard Least Counts for Virtual Lab Instruments
+const LEAST_COUNTS = {
+    L: 0.1,    // cm (Meter scale)
+    D: 0.01,   // cm (Vernier Caliper)
+    d: 0.01,   // mm (Screw Gauge)
+    phi: 0.1   // degrees (Circular scale)
+};
+
+function calculatePhi(mass, L_cm, D_cm, rod_d_mm, materialKey) {
+    const l = L_cm / 100;
+    const d_pulley = D_cm / 100;
+    const r_rod = (rod_d_mm / 1000) / 2;
+    const g = 9.81;
+    const eta = MATERIALS[materialKey];
+    return (180 * l * d_pulley * g * mass) / (Math.pow(Math.PI, 2) * Math.pow(r_rod, 4) * eta);
+}
+
+// --- APP STATE ---
+let currentMass = 0;
+let tableData = {}; 
+let myChart = null;
+let currentT1 = 0;
+let currentT2 = 0;
+
+// --- THEME TOGGLE LOGIC ---
+window.toggleTheme = () => {
+    document.body.classList.toggle('light-theme');
+    const isLight = document.body.classList.contains('light-theme');
+    document.getElementById('theme-btn').innerHTML = isLight ? '🌙 Dark Mode' : '☀️ Light Mode';
+    
+    // Redraw SVG scales to update text colors
+    initBackgroundScales();
+    drawPrecisionScales(currentT1, currentT2);
+
+    // Redraw chart if it is currently open
+    if (myChart && document.getElementById('modal').style.display === 'flex') {
+        showPopupGraph();
+    }
+    if (typeof MeasurementsHub !== 'undefined') MeasurementsHub.onThemeChange();
+};
+
+function isExperimentUnlocked() {
+    return typeof MeasurementSession !== 'undefined' && MeasurementSession.isExperimentUnlocked();
+}
+
+window.goToMeasurementsTab = () => {
+    const btn = document.querySelector('.tab-btn[onclick*="measurements"]');
+    switchTab({ currentTarget: btn }, 'measurements');
+};
+
+function showExperimentLockToast() {
+    const toast = document.getElementById('experiment-lock-toast');
+    if (!toast) return;
+    toast.textContent = 'Complete all required measurements before accessing the experiment.';
+    toast.classList.add('visible');
+    clearTimeout(showExperimentLockToast._timer);
+    showExperimentLockToast._timer = setTimeout(() => toast.classList.remove('visible'), 3500);
+}
+
+window.unlockExperimentTab = () => {
+    const expTab = document.getElementById('experiment-tab-btn');
+    const expContent = document.getElementById('experiment');
+    const overlay = document.getElementById('experiment-lock-overlay');
+    if (expTab) {
+        expTab.classList.remove('tab-btn-locked');
+        expTab.removeAttribute('title');
+    }
+    if (expContent) expContent.classList.remove('experiment-locked');
+    if (overlay) overlay.style.display = 'none';
+    MeasurementSession.applyToExperimentFields();
+};
+
+window.switchTab = (evt, tabId) => {
+    if (tabId === 'experiment' && !isExperimentUnlocked()) {
+        showExperimentLockToast();
+        if (evt && evt.currentTarget) evt.currentTarget.classList.remove('active');
+        const measurementsBtn = Array.from(document.querySelectorAll('.tab-btn')).find(
+            b => b.getAttribute('onclick')?.includes("'measurements'")
+        );
+        if (measurementsBtn && !document.getElementById('measurements').classList.contains('active')) {
+            /* keep current tab active */
+        }
+        return;
+    }
+
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(tabId).classList.add('active');
+    if (evt && evt.currentTarget) evt.currentTarget.classList.add('active');
+
+    if (tabId === 'measurements' && typeof MeasurementsHub !== 'undefined') {
+        MeasurementsHub.init();
+    }
+    if (tabId === 'experiment' && typeof MeasurementsHub !== 'undefined') {
+        MeasurementsHub.markExperimentPerformed();
+    }
+};
+
+function drawPrecisionScales(t1, t2) {
+    document.getElementById('pulley-group').style.transform = `rotate(${t2 - t1}deg)`;
+    document.getElementById('zoomed-pointer1').style.transform = `rotate(${t1}deg)`;
+    document.getElementById('zoomed-pointer2').style.transform = `rotate(${t2}deg)`;
+
+    const weightGroup = document.getElementById('dynamic-weights');
+    weightGroup.innerHTML = '';
+    const numWeights = currentMass / 0.5;
+    document.getElementById('string').setAttribute('y2', 200 + (numWeights * 8));
+    for(let i=0; i < numWeights; i++) {
+        const w = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        w.setAttribute("x", "190"); w.setAttribute("y", 200 + (i * 8));
+        w.setAttribute("width", "30"); w.setAttribute("height", "7");
+        w.setAttribute("fill", "var(--svg-pulley)"); weightGroup.appendChild(w);
+    }
+}
+
+window.updateSim = (mode) => {
+    if (!isExperimentUnlocked()) {
+        return alert("Complete all required measurements in the Measurements tab before running the experiment.");
+    }
+    const l_in = document.getElementById('wire-l').value;
+    const d_in = document.getElementById('pulley-d').value;
+    const r_in = document.getElementById('rod-d').value;
+    if (!l_in || !d_in || !r_in) return alert("Rod and pulley diameters must be obtained from instrument measurements. Complete the Measurements tab first.");
+    if (mode === 'rem' && currentMass <= 0) return;
+
+    currentMass += (mode === 'add' ? 0.5 : -0.5);
+    
+    // Calculate theoretical phi
+    let phi = calculatePhi(currentMass, parseFloat(l_in), parseFloat(d_in), parseFloat(r_in), document.getElementById('material').value);
+    
+    // Introduce slight, realistic experimental noise (+/- 1%)
+    if (currentMass > 0) {
+        const errorFactor = 1 + (Math.random() * 0.02 - 0.01); 
+        phi = phi * errorFactor;
+    }
+
+    currentT1 = phi * 0.4; 
+    currentT2 = phi * 1.4; 
+    const diff = currentT2 - currentT1;
+
+    if (!tableData[currentMass]) {
+        tableData[currentMass] = { inc: {t1:'-', t2:'-', d:'-'}, dec: {t1:'-', t2:'-', d:'-'} };
+    }
+    
+    if (mode === 'add') {
+        tableData[currentMass].inc = { t1: currentT1.toFixed(2), t2: currentT2.toFixed(2), d: diff.toFixed(2) };
+    } else {
+        tableData[currentMass].dec = { t1: currentT1.toFixed(2), t2: currentT2.toFixed(2), d: diff.toFixed(2) };
+    }
+
+    document.getElementById('load-display').innerText = currentMass.toFixed(1) + " kg";
+    document.getElementById('live-t1').innerText = currentT1.toFixed(2);
+    document.getElementById('live-t2').innerText = currentT2.toFixed(2);
+    document.getElementById('live-diff').innerText = diff.toFixed(2);
+    drawPrecisionScales(currentT1, currentT2);
+    renderTable();
+};
+
+function renderTable() {
+    const tbody = document.querySelector("#obs-table tbody"); tbody.innerHTML = '';
+    const sortedMasses = Object.keys(tableData).map(Number).sort((a,b)=>a-b);
+    
+    sortedMasses.forEach((m, i) => {
+        const row = tableData[m];
+        let phi_mean = "-";
+        if (row.inc.d !== '-' && row.dec.d !== '-') {
+            phi_mean = ((parseFloat(row.inc.d) + parseFloat(row.dec.d)) / 2).toFixed(2);
+        } else if (row.inc.d !== '-') {
+            phi_mean = row.inc.d;
+        } else if (row.dec.d !== '-') {
+            phi_mean = row.dec.d;
+        }
+
+        tbody.innerHTML += `<tr><td>${i+1}</td><td>${m.toFixed(1)}</td><td>${row.inc.t1}</td><td>${row.inc.t2}</td><td>${row.inc.d}</td><td>${row.dec.t1}</td><td>${row.dec.t2}</td><td>${row.dec.d}</td><td><strong>${phi_mean}</strong></td></tr>`;
+    });
+    if (sortedMasses.length >= 3) document.getElementById('plot-btn').style.display = 'block';
+}
+
+window.showPopupGraph = () => {
+    if (!isExperimentUnlocked()) {
+        return alert("Complete all required measurements before viewing analysis.");
+    }
+    document.getElementById('modal').style.display = 'flex';
+    if (typeof MeasurementsHub !== 'undefined') MeasurementsHub.markGraphGenerated();
+    const ctx = document.getElementById('graph-canvas').getContext('2d');
+    
+    // Dynamically grab CSS colors based on current theme
+    const textColor = getComputedStyle(document.body).getPropertyValue('--text-main').trim();
+    const gridColor = getComputedStyle(document.body).getPropertyValue('--border').trim();
+    
+    let sumXY = 0;
+    let sumX2 = 0;
+    let max_phi_reading = 0;
+
+    const points = Object.keys(tableData).map(Number).sort((a,b)=>a-b).map(m => {
+        const row = tableData[m];
+        let yVal = 0;
+        if (row.inc.d !== '-' && row.dec.d !== '-') yVal = (parseFloat(row.inc.d) + parseFloat(row.dec.d)) / 2;
+        else if (row.inc.d !== '-') yVal = parseFloat(row.inc.d);
+        else if (row.dec.d !== '-') yVal = parseFloat(row.dec.d);
+        
+        if (m > 0) {
+            sumXY += m * yVal;
+            sumX2 += m * m;
+            max_phi_reading = Math.max(max_phi_reading, yVal);
+        }
+
+        return {x: m, y: yVal};
+    });
+
+    const slope = sumX2 === 0 ? 0 : sumXY / sumX2; 
+    
+    const L_raw = parseFloat(document.getElementById('wire-l').value);
+    const D_raw = parseFloat(document.getElementById('pulley-d').value);
+    const d_raw = parseFloat(document.getElementById('rod-d').value);
+
+    const l_m = L_raw / 100;
+    const D_m = D_raw / 100;
+    const r_m = d_raw / 2000; 
+    const g = 9.81;
+    
+    const eta_exp = (180 * l_m * D_m * g) / (Math.pow(Math.PI, 2) * Math.pow(r_m, 4) * slope);
+    
+    let identifiedMaterial = "Unknown";
+    let minDiff = Infinity;
+    for (const [mat, theoretical_eta] of Object.entries(MATERIALS)) {
+        let diff = Math.abs(eta_exp - theoretical_eta);
+        if (diff < minDiff) {
+            minDiff = diff;
+            identifiedMaterial = mat;
+        }
+    }
+
+    const err_frac_L = LEAST_COUNTS.L / L_raw;
+    const err_frac_D = LEAST_COUNTS.D / D_raw;
+    const err_frac_d = LEAST_COUNTS.d / d_raw;
+    const err_frac_phi = LEAST_COUNTS.phi / max_phi_reading;
+
+    const total_frac_error = err_frac_L + err_frac_D + (4 * err_frac_d) + err_frac_phi;
+
+    document.getElementById('res-slope').innerText = slope.toFixed(4);
+    
+    const eta_dyne = eta_exp * 10;
+    document.getElementById('res-eta').innerHTML = (eta_dyne / 1e11).toFixed(2) + " &times; 10<sup>11</sup>";
+    document.getElementById('res-mat').innerText = identifiedMaterial;
+
+    document.getElementById('err-L').innerText = err_frac_L.toFixed(4);
+    document.getElementById('err-D').innerText = err_frac_D.toFixed(4);
+    document.getElementById('err-d').innerText = (4 * err_frac_d).toFixed(4);
+    document.getElementById('err-phi').innerText = err_frac_phi.toFixed(4);
+    document.getElementById('err-frac').innerText = total_frac_error.toFixed(4);
+    document.getElementById('err-pct').innerText = (total_frac_error * 100).toFixed(2);
+
+    if (myChart) myChart.destroy();
+    myChart = new Chart(ctx, {
+        type: 'line', 
+        data: { 
+            datasets: [{
+                label: 'Mean Twist φ (°)', 
+                data: points, 
+                borderColor: '#0EA5E9', 
+                backgroundColor: 'rgba(14, 165, 233, 0.2)',
+                tension: 0.1,
+                fill: true
+            }] 
+        },
+        options: { 
+            scales: { 
+                x: { 
+                    type: 'linear', 
+                    title: { display: true, text: 'Mass (kg)', color: textColor }, 
+                    ticks: { color: textColor },
+                    grid: { color: gridColor }
+                },
+                y: { 
+                    title: { display: true, text: 'Twist φ (°)', color: textColor }, 
+                    ticks: { color: textColor },
+                    grid: { color: gridColor }
+                }
+            },
+            plugins: { legend: { labels: { color: textColor } } }
+        }
+    });
+};
+
+window.closeModal = () => document.getElementById('modal').style.display = 'none';
+
+function initBackgroundScales() {
+    // Dynamic text colors for SVG based on theme
+    const textColor = getComputedStyle(document.body).getPropertyValue('--text-main').trim() || '#fff';
+    const mutedColor = getComputedStyle(document.body).getPropertyValue('--text-muted').trim() || '#8b949e';
+
+    const draw = (id) => {
+        const g = document.getElementById(id); g.innerHTML = '';
+        for (let i = -10; i <= 50; i++) {
+            const isMajor = i % 10 === 0; const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            line.setAttribute("x1", "0"); line.setAttribute("y1", "-100"); line.setAttribute("x2", "0"); line.setAttribute("y2", isMajor ? "-85" : "-95");
+            line.setAttribute("stroke", isMajor ? textColor : mutedColor); line.setAttribute("transform", `rotate(${i})`); g.appendChild(line);
+            if (isMajor) {
+                const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                t.setAttribute("y", "-105"); t.setAttribute("text-anchor", "middle"); t.setAttribute("transform", `rotate(${i})`); t.textContent = i; t.setAttribute("fill", textColor); t.setAttribute("font-size", "10"); g.appendChild(t);
+            }
+        }
+    };
+    draw('scale-ticks-1'); draw('scale-ticks-2');
+}
+
+function preventDimensionTampering() {
+    ['rod-d', 'pulley-d'].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.readOnly = true;
+        el.addEventListener('keydown', e => e.preventDefault());
+        el.addEventListener('paste', e => e.preventDefault());
+        el.addEventListener('drop', e => e.preventDefault());
+    });
+}
+
+window.onload = () => {
+    if (typeof MeasurementSession !== 'undefined') MeasurementSession.init();
+    preventDimensionTampering();
+    initBackgroundScales();
+    tableData[0] = { inc:{t1:'0.00',t2:'0.00',d:'0.00'}, dec:{t1:'-',t2:'-',d:'-'} };
+    renderTable();
+};

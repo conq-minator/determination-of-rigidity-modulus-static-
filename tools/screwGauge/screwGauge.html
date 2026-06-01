@@ -1,0 +1,34 @@
+<!-- Screw Gauge fragment – mounted by screwGauge.js into #screw-gauge-mount -->
+<div class="screw-gauge-tool" id="screw-gauge-root">
+    <div class="sg-header">
+        <h3>Screw Gauge — Rod Diameter</h3>
+        <span class="sg-reading-badge" data-sg-badge>Reading 1 of 4</span>
+    </div>
+    <div class="sg-instrument-wrap">
+        <svg class="sg-svg" data-sg-svg viewBox="0 0 520 240" width="100%" height="auto" preserveAspectRatio="xMidYMid meet" aria-label="Screw gauge simulation"></svg>
+    </div>
+    <div class="sg-guide-box" data-sg-guide></div>
+    <div class="sg-input-section" data-sg-inputs style="display: none;">
+        <div class="sg-input-row">
+            <div class="sg-field">
+                <label>Main Scale Reading (MSR) mm</label>
+                <input type="number" step="0.1" data-sg-msr placeholder="e.g. 3.0">
+            </div>
+            <div class="sg-field">
+                <label>Circular Scale Reading (CSR)</label>
+                <input type="number" step="1" min="0" max="99" data-sg-csr placeholder="e.g. 24">
+            </div>
+            <div class="sg-field">
+                <label>Final Reading mm</label>
+                <input type="number" step="0.01" data-sg-final placeholder="e.g. 3.24">
+            </div>
+        </div>
+        <div class="sg-actions">
+            <button type="button" class="primary" data-sg-submit>Check Answers</button>
+        </div>
+        <div class="sg-error" data-sg-error role="alert"></div>
+    </div>
+    <div class="sg-actions" data-sg-nav>
+        <button type="button" class="primary" data-sg-next style="display: none;">Next Reading</button>
+    </div>
+</div>

@@ -1,0 +1,34 @@
+<!-- Vernier Caliper fragment – mounted by vernier.js into #vernier-caliper-mount -->
+<div class="vernier-caliper-tool" id="vernier-caliper-root">
+    <div class="vc-header">
+        <h3>Vernier Caliper — Pulley Diameter</h3>
+        <span class="vc-reading-badge" data-vc-badge>Reading 1 of 4</span>
+    </div>
+    <div class="vc-instrument-wrap" style="overflow-x: auto; overflow-y: hidden; width: 100%; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-panel); margin-bottom: 20px;">
+        <svg class="vc-svg" data-vc-svg viewBox="0 0 1200 220" width="1200" height="220" aria-label="Vernier caliper simulation" style="display: block; margin: 0 auto;"></svg>
+    </div>
+    <div class="vc-guide-box" data-vc-guide></div>
+    <div class="vc-input-section" data-vc-inputs style="display: none;">
+        <div class="vc-input-row">
+            <div class="vc-field">
+                <label>Main Scale Reading (MSR) cm</label>
+                <input type="number" step="0.1" data-vc-msr placeholder="e.g. 15.0">
+            </div>
+            <div class="vc-field">
+                <label>Vernier Coincidence</label>
+                <input type="number" step="1" min="0" max="9" data-vc-vernier placeholder="e.g. 3">
+            </div>
+            <div class="vc-field">
+                <label>Final Reading cm</label>
+                <input type="number" step="0.01" data-vc-final placeholder="e.g. 15.03">
+            </div>
+        </div>
+        <div class="vc-actions">
+            <button type="button" class="primary" data-vc-submit>Check Answers</button>
+        </div>
+        <div class="vc-error" data-vc-error role="alert"></div>
+    </div>
+    <div class="vc-actions" data-vc-nav>
+        <button type="button" class="primary" data-vc-next style="display: none;">Next Reading</button>
+    </div>
+</div>
