@@ -1,0 +1,1 @@
+# determination-of-rigidity-modulus-static-
