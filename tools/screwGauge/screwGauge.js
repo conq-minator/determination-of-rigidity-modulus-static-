@@ -387,7 +387,6 @@
             const finalOk = approxEqual(finalIn, expected.final, 0.01);
 
             if (!msrOk || !csrOk || !finalOk) {
-                // Trigger Smart Tutor instead of generic text
                 errEl.textContent = '';
                 window.analyzeAndShowError(
                     'screwGauge', 
@@ -415,8 +414,11 @@
                 sg.completed = true;
                 sg.currentIndex = 4;
                 this.showComplete();
-                if (this.onComplete) this.onComplete();
-                if (global.MeasurementsHub) global.MeasurementsHub.onToolComplete();
+                
+                // CRITICAL FIX: Only fire ONE callback to let the measurementsController handle it
+                if (this.onComplete) {
+                    this.onComplete(); 
+                }
                 return;
             }
 

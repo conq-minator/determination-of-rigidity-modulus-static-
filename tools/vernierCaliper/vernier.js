@@ -326,7 +326,7 @@
                 this.setLocked(true);
                 return;
             } else {
-                this.root.style.display = 'block';
+                this.root.style.display = 'block'; // Make absolutely sure it un-hides
                 if (lockedMsg) {
                     lockedMsg.remove();
                 }
@@ -417,7 +417,6 @@
             const finalOk = approxEqual(finalIn, expected.final, 0.01);
 
             if (!msrOk || !vernierOk || !finalOk) {
-                // Trigger Smart Tutor instead of generic text
                 errEl.textContent = ''; 
                 window.analyzeAndShowError(
                     'vernier', 
@@ -457,4 +456,20 @@
 
         showComplete() {
             const vc = this.getSession();
-            const avg = vc
+            const avg = vc.studentFinals.reduce((a, b) => a + b, 0) / vc.studentFinals.length;
+            this.root.innerHTML = `
+                <div class="vc-complete-banner">
+                    <strong>✓ Vernier Caliper Completed</strong>
+                    <p style="margin:8px 0 0;color:var(--text-muted);">Four readings recorded. Average pulley diameter: <strong style="color:var(--accent)">${avg.toFixed(2)} cm</strong></p>
+                </div>
+            `;
+        },
+
+        redraw() {
+            if (this.root && !this.getSession().completed) this.render();
+            else if (this.root && this.getSession().completed) this.showComplete();
+        }
+    };
+
+    global.VernierCaliperTool = VernierCaliperTool;
+})(typeof window !== 'undefined' ? window : global);

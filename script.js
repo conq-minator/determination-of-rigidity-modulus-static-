@@ -214,11 +214,25 @@ window.updateSim = (mode) => {
     if (!isExperimentUnlocked()) {
         return alert("Complete all required measurements in the Measurements tab before running the experiment.");
     }
-    const l_in = document.getElementById('wire-l').value;
+    const l_in = document.getElementById('pin-sep').value;
     const d_in = document.getElementById('pulley-d').value;
     const r_in = document.getElementById('rod-d').value;
     if (!l_in || !d_in || !r_in) return alert("Rod and pulley diameters must be obtained from instrument measurements. Complete the Measurements tab first.");
     if (mode === 'rem' && currentMass <= 0) return;
+
+    if (mode === 'add') {
+        // Pre-calculate to ensure pointer doesn't overflow scale before applying the mass
+        const testPhi = calculatePhi(currentMass + 0.5, parseFloat(l_in), parseFloat(d_in), parseFloat(r_in), document.getElementById('material').value);
+        // Scale 2 rotates faster (phi * 1.4). The maximum reading on the visual scale is 50°.
+        if (testPhi * 1.4 >= 49) {
+            return alert("Cannot add more weight. The pointer will exceed the maximum scale limit (50°). Proceed to plot the graph with current readings.");
+        }
+        
+        // Hard physical limit of hanger
+        if (currentMass >= 5.0) {
+            return alert("Maximum weight hanger capacity (5.0 kg) reached.");
+        }
+    }
 
     currentMass += (mode === 'add' ? 0.5 : -0.5);
     
@@ -307,7 +321,7 @@ window.showPopupGraph = () => {
 
     const slope = sumX2 === 0 ? 0 : sumXY / sumX2; 
     
-    const L_raw = parseFloat(document.getElementById('wire-l').value);
+    const L_raw = parseFloat(document.getElementById('pin-sep').value);
     const D_raw = parseFloat(document.getElementById('pulley-d').value);
     const d_raw = parseFloat(document.getElementById('rod-d').value);
 

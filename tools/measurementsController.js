@@ -23,12 +23,22 @@
 
         onToolComplete() {
             const s = global.MeasurementSession.getState();
-            if (s.screwGauge.completed && !s.vernier.completed && global.VernierCaliperTool?.root) {
-                global.VernierCaliperTool.render();
-            }
+            
             this.updateProgress();
             this.updateStepStates();
             this.updateAveragesPanel();
+
+            // WAKE UP VERNIER CALIPER: Brute-force unhide the container and render the tool
+            if (s.screwGauge.completed && !s.vernier.completed) {
+                const vcMount = document.getElementById('vernier-caliper-mount');
+                if (vcMount) {
+                    vcMount.style.display = 'block'; 
+                }
+                if (global.VernierCaliperTool) {
+                    global.VernierCaliperTool.render(); 
+                }
+            }
+            
             if (s.screwGauge.completed && s.vernier.completed) {
                 this.finalizeAverages();
             }
@@ -94,7 +104,23 @@
             const step3 = document.getElementById('measurements-step-3');
             const step4 = document.getElementById('measurements-step-4');
 
-            if (step2) step2.classList.toggle('measurements-step-active', s.screwGauge.completed && !s.vernier.completed);
+            if (step2) {
+                const isActive = s.screwGauge.completed && !s.vernier.completed;
+                step2.classList.toggle('measurements-step-active', isActive);
+                
+                // Dynamically update the instruction text
+                const desc = step2.querySelector('p');
+                if (desc) {
+                    if (isActive) {
+                        desc.innerHTML = '<span style="color: var(--accent); font-weight: bold;">Unlocked!</span> Measure the pulley diameter. Complete all four readings.';
+                    } else if (s.vernier.completed) {
+                        desc.textContent = "Pulley measurements complete.";
+                    } else {
+                        desc.textContent = 'Measure the pulley diameter. Available after Step 1 is complete.';
+                    }
+                }
+            }
+
             if (step3) {
                 const show = s.screwGauge.completed && s.vernier.completed;
                 step3.style.display = show ? 'block' : 'none';

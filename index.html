@@ -49,7 +49,7 @@
                 <li><strong>m</strong> = Mass of the applied load in kg</li>
                 <li><strong>g</strong> = Acceleration due to gravity (9.81 m/s&sup2;)</li>
                 <li><strong>d</strong> = Diameter of the pulley in meters</li>
-                <li><strong>l</strong> = Length of the experimental rod in meters</li>
+                <li><strong>l</strong> = Pin separation (length of experimental rod between pointers) in meters</li>
                 <li><strong>r</strong> = Radius of the cross-section of the rod in meters</li>
                 <li><strong>&phi;</strong> = The angle of twist measured in degrees</li>
             </ul>
@@ -65,7 +65,7 @@
                 <li><strong>Slotted Weights and Hanger:</strong> A set of standard cast-iron or brass masses (commonly in 500g increments) and a hanger. These are used to apply a precise downward gravitational force, which creates the twisting torque on the pulley.</li>
                 <li><strong>Pointers and Circular Scales:</strong> Two metallic pointers clamped to the experimental rod at specific distances. They move across fixed, graduated circular scales (often marked in degrees or half-degrees) to measure the angle of twist at different points along the rod.</li>
                 <li><strong>Vernier Caliper:</strong> A high-precision measurement tool used to accurately measure the diameter of the experimental rod and the diameter of the pulley. These measurements are crucial for calculating the radii (<em>r</em> and <em>R</em>).</li>
-                <li><strong>Meter Scale or Measuring Tape:</strong> A standard metric ruler used to measure the working length (<em>L</em>) of the rod, which is the exact distance between the fixed clamp and the pulley, or between the two pointers.</li>
+                <li><strong>Meter Scale or Measuring Tape:</strong> A standard metric ruler used to measure the working pin separation (<em>L</em>), which is the exact distance between the two pointers.</li>
                 <li><strong>Inextensible String:</strong> A strong, thin cord wrapped around the groove of the pulley to connect it to the weight hanger. It must not stretch under the applied load.</li>
             </ul>
         </div>
@@ -77,13 +77,13 @@
             <p>Follow these steps to conduct the virtual experiment:</p>
             <ol>
                 <li><strong>Apparatus Setup:</strong> Navigate to the Experiment Simulation tab. You will see a rod fixed at the right end and attached to a pulley wheel at the left end.</li>
-                <li><strong>Set Parameters:</strong> In the Data Input & Control panel, select the material of the rod (Steel, Iron, or Copper).</li>
+                <li><strong>Set Parameters:</strong> In the Data Input & Control panel, select the material of the rod and specify the Pin Separation L.</li>
                 <li><strong>Measurements:</strong> Open the <strong>Measurements</strong> tab. Use the Screw Gauge and Vernier Caliper to measure rod diameter and pulley diameter (four readings each). Averaged values unlock the experiment and populate the simulation automatically.</li>
                 <li><strong>Initial Reading:</strong> Ensure the live load (M) is set to 0.0 kg. Click <strong>Save Data Point</strong> to log your zero-error state.</li>
                 <li><strong>Loading the Rod:</strong> Click the <strong>+</strong> button on the slider to add weights in 0.5 kg increments.</li>
                 <li><strong>Record Observations:</strong> As you add weight, the rod will twist. Observe the readings on Scale 1 (&theta;<sub>1</sub>) and Scale 2 (&theta;<sub>2</sub>) measured in degrees. The zoomed-in dials will clearly show this angular deflection.</li>
                 <li><strong>Save Data:</strong> Click <strong>Save Data Point</strong>. This will log the current load, angles, and calculated Modulus of Rigidity (G) into the observation table.</li>
-                <li><strong>Plot Graph:</strong> Continue adding weights up to 5.0 kg, saving data at regular intervals. A graph of <em>Mean Deflection vs. Load</em> will plot automatically. It should represent a straight line passing through the origin, verifying Hooke's Law for torsion.</li>
+                <li><strong>Plot Graph:</strong> Continue adding weights up to 5.0 kg (or until the scale limit is reached), saving data at regular intervals. A graph of <em>Mean Deflection vs. Load</em> will plot automatically. It should represent a straight line passing through the origin, verifying Hooke's Law for torsion.</li>
             </ol>
         </div>
     </div>
@@ -235,8 +235,8 @@
                     </select>
                 </div>
                 <div class="control-group">
-                    <label>Wire Length L (cm)</label>
-                    <input type="number" id="wire-l" value="100">
+                    <label>Pin Separation L (cm)</label>
+                    <input type="number" id="pin-sep" value="100">
                 </div>
                 <div class="control-group">
                     <label>Pulley Diameter D (cm)</label>
@@ -300,13 +300,13 @@
         </h3>
         <ol style="line-height: 1.8; margin-top: 20px; padding-left: 20px;">
             <li><strong>Apparatus Setup:</strong> Navigate to the Experiment Simulation tab. You will see a rod fixed at the right end and attached to a pulley wheel at the left end.</li>
-            <li><strong>Set Parameters:</strong> In the Data Input & Control panel, select the material of the rod (Steel, Iron, or Copper) and specify the wire length.</li>
+            <li><strong>Set Parameters:</strong> In the Data Input & Control panel, select the material of the rod (Steel, Iron, or Copper) and specify the Pin Separation L.</li>
             <li><strong>Measurements:</strong> Open the <strong>Measurements</strong> tab. Use the Screw Gauge and Vernier Caliper to measure rod diameter and pulley diameter (four readings each). Averaged values unlock the experiment and populate the simulation automatically.</li>
             <li><strong>Initial Reading:</strong> Ensure the live load (M) is set to 0.0 kg to establish your zero-error state.</li>
             <li><strong>Loading the Rod:</strong> Click the <strong>+ 0.5 kg</strong> button on the control panel to add weights in increments.</li>
             <li><strong>Record Observations:</strong> As you add weight, the rod will twist. Observe the readings on Scale 1 (&theta;<sub>1</sub>) and Scale 2 (&theta;<sub>2</sub>) measured in degrees.</li>
             <li><strong>Save Data:</strong> The simulation automatically logs the current load, angles, and twist difference into the observation table as you add or remove weights.</li>
-            <li><strong>Plot Graph:</strong> Continue adding weights up to a minimum of 1.5 kg (3 rows), then click "View Graph & Analysis". A graph of <em>Mean Deflection vs. Load</em> will plot automatically to verify Hooke's Law.</li>
+            <li><strong>Plot Graph:</strong> Continue adding weights up to the limit (or until you have at least 3 readings), then click "View Graph & Analysis". A graph of <em>Mean Deflection vs. Load</em> will plot automatically to verify Hooke's Law.</li>
         </ol>
         <div style="text-align: right; margin-top: 20px;">
             <button class="primary" onclick="closeHelpModal()">Understood</button>
@@ -352,7 +352,7 @@
                     <div style="margin: 10px 0; padding: 10px; border-left: 2px solid var(--accent); background: var(--formula-bg); color: var(--text-main);">
                         <strong>Variables Legend:</strong><br>
                         • <strong>&Delta;L</strong>, <strong>&Delta;D</strong>, <strong>&Delta;d</strong>, <strong>&Delta;&phi;</strong> : Instrumental least counts (Max error)<br>
-                        • <strong>L</strong> : Working length of experimental rod (cm)<br>
+                        • <strong>L</strong> : Working pin separation (cm)<br>
                         • <strong>D</strong> : Diameter of the pulley wheel (cm)<br>
                         • <strong>d</strong> : Diameter of the experimental rod (mm)<br>
                         • <strong>&phi;</strong> : Maximum angle of twist measured (°)<br>
@@ -396,4 +396,4 @@
 <script src="script.js"></script>
 
 </body>
-</html> 
+</html>
