@@ -14,6 +14,7 @@
     <header style="position: relative;">
         <h1>Virtual Physics Laboratory</h1>
         <p style="color: var(--text-muted);">Determination of Modulus of Rigidity by Static Method</p>
+        <button onclick="openHelpModal()" id="help-btn" class="help-btn" title="How to perform the experiment">❓</button>
         <button onclick="toggleTheme()" id="theme-btn" class="theme-btn">☀️ Light Mode</button>
     </header>
 
@@ -76,7 +77,6 @@
             <p>Follow these steps to conduct the virtual experiment:</p>
             <ol>
                 <li><strong>Apparatus Setup:</strong> Navigate to the Experiment Simulation tab. You will see a rod fixed at the right end and attached to a pulley wheel at the left end.</li>
-                <li><strong>Set Parameters:</strong> In the Data Input & Control panel, select the material of the rod (Steel, Iron, or Copper).</li>
                 <li><strong>Set Parameters:</strong> In the Data Input & Control panel, select the material of the rod (Steel, Iron, or Copper).</li>
                 <li><strong>Measurements:</strong> Open the <strong>Measurements</strong> tab. Use the Screw Gauge and Vernier Caliper to measure rod diameter and pulley diameter (four readings each). Averaged values unlock the experiment and populate the simulation automatically.</li>
                 <li><strong>Initial Reading:</strong> Ensure the live load (M) is set to 0.0 kg. Click <strong>Save Data Point</strong> to log your zero-error state.</li>
@@ -282,6 +282,28 @@
                 </table>
                 <button id="plot-btn" class="primary" style="display: none; margin-top: 15px; width: 220px; align-self: center;" onclick="showPopupGraph()">View Graph & Analysis</button>
             </div>
+        </div>
+    </div>
+</div>
+
+<div id="help-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center;">
+    <div style="background: var(--bg-panel); padding: 20px; border-radius: 8px; width: 90%; max-width: 700px; max-height: 90vh; overflow-y: auto; border: 1px solid var(--border);">
+        <h3 style="display: flex; justify-content: space-between; margin-top: 0; border-bottom: 1px solid var(--border); padding-bottom: 10px;">
+            Experiment Procedure Guide
+            <span style="cursor: pointer; color: var(--text-muted); font-size: 1.2em;" onclick="closeHelpModal()">&times;</span>
+        </h3>
+        <ol style="line-height: 1.8; margin-top: 20px; padding-left: 20px;">
+            <li><strong>Apparatus Setup:</strong> Navigate to the Experiment Simulation tab. You will see a rod fixed at the right end and attached to a pulley wheel at the left end.</li>
+            <li><strong>Set Parameters:</strong> In the Data Input & Control panel, select the material of the rod (Steel, Iron, or Copper) and specify the wire length.</li>
+            <li><strong>Measurements:</strong> Open the <strong>Measurements</strong> tab. Use the Screw Gauge and Vernier Caliper to measure rod diameter and pulley diameter (four readings each). Averaged values unlock the experiment and populate the simulation automatically.</li>
+            <li><strong>Initial Reading:</strong> Ensure the live load (M) is set to 0.0 kg to establish your zero-error state.</li>
+            <li><strong>Loading the Rod:</strong> Click the <strong>+ 0.5 kg</strong> button on the control panel to add weights in increments.</li>
+            <li><strong>Record Observations:</strong> As you add weight, the rod will twist. Observe the readings on Scale 1 (&theta;<sub>1</sub>) and Scale 2 (&theta;<sub>2</sub>) measured in degrees.</li>
+            <li><strong>Save Data:</strong> The simulation automatically logs the current load, angles, and twist difference into the observation table as you add or remove weights.</li>
+            <li><strong>Plot Graph:</strong> Continue adding weights up to a minimum of 1.5 kg (3 rows), then click "View Graph & Analysis". A graph of <em>Mean Deflection vs. Load</em> will plot automatically to verify Hooke's Law.</li>
+        </ol>
+        <div style="text-align: right; margin-top: 20px;">
+            <button class="primary" onclick="closeHelpModal()">Understood</button>
         </div>
     </div>
 </div>

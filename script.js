@@ -42,6 +42,10 @@ window.toggleTheme = () => {
     if (typeof MeasurementsHub !== 'undefined') MeasurementsHub.onThemeChange();
 };
 
+// --- HELP MODAL LOGIC ---
+window.openHelpModal = () => document.getElementById('help-modal').style.display = 'flex';
+window.closeHelpModal = () => document.getElementById('help-modal').style.display = 'none';
+
 function isExperimentUnlocked() {
     return typeof MeasurementSession !== 'undefined' && MeasurementSession.isExperimentUnlocked();
 }
