@@ -387,7 +387,14 @@
             const finalOk = approxEqual(finalIn, expected.final, 0.01);
 
             if (!msrOk || !csrOk || !finalOk) {
-                errEl.textContent = 'One or more answers are incorrect. Check MSR, CSR, and your calculation. Try again.';
+                // Trigger Smart Tutor instead of generic text
+                errEl.textContent = '';
+                window.analyzeAndShowError(
+                    'screwGauge', 
+                    msrIn, expected.msr, 
+                    csrIn, expected.csr, 
+                    finalIn, expected.final
+                );
                 return;
             }
 

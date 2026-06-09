@@ -42,9 +42,99 @@ window.toggleTheme = () => {
     if (typeof MeasurementsHub !== 'undefined') MeasurementsHub.onThemeChange();
 };
 
-// --- HELP MODAL LOGIC ---
+// --- GENERAL HELP MODAL LOGIC ---
 window.openHelpModal = () => document.getElementById('help-modal').style.display = 'flex';
 window.closeHelpModal = () => document.getElementById('help-modal').style.display = 'none';
+
+// --- INSTRUMENT HELP MODAL LOGIC ---
+window.openInstrumentHelp = (instrument) => {
+    const titleEl = document.getElementById('inst-help-title');
+    const contentEl = document.getElementById('inst-help-content');
+    const closeBtn = '<span style="cursor: pointer; color: var(--text-muted); font-size: 1.2em;" onclick="closeInstrumentHelp()">&times;</span>';
+
+    if (instrument === 'screwGauge') {
+        titleEl.innerHTML = `How to read the Screw Gauge ${closeBtn}`;
+        contentEl.innerHTML = `
+            <ol style="padding-left: 20px; margin-bottom: 0;">
+                <li style="margin-bottom: 15px;"><strong>Main Scale Reading (MSR):</strong> Look at the horizontal, non-moving cylinder. Find the last visible line right before the edge of the rotating thimble. The top marks are whole millimeters (0, 1, 2, 3...) and the bottom marks are half-millimeters (0.5, 1.5, 2.5...).</li>
+                <li style="margin-bottom: 15px;"><strong>Circular Scale Reading (CSR):</strong> Look at the rotating thimble. Find the exact number that perfectly aligns with the long, horizontal reference line on the main scale.</li>
+                <li><strong>Final Calculation:</strong> Multiply your CSR by the least count (0.01 mm) and add it to your MSR.<br><br>
+                <div style="font-family: monospace; color: var(--accent); background: var(--bg-main); padding: 10px; border-radius: 4px; border: 1px solid var(--border); display: inline-block;">Final = MSR + (CSR &times; 0.01)</div>
+                </li>
+            </ol>
+        `;
+    } else if (instrument === 'vernier') {
+        titleEl.innerHTML = `How to read the Vernier Caliper ${closeBtn}`;
+        contentEl.innerHTML = `
+            <ol style="padding-left: 20px; margin-bottom: 0;">
+                <li style="margin-bottom: 15px;"><strong>Main Scale Reading (MSR):</strong> Locate the <strong>0 (zero) mark</strong> on the bottom sliding scale (the Vernier scale). Look at the top, fixed scale and find the mark exactly to the <em>left</em> of that zero. Read this value in cm.</li>
+                <li style="margin-bottom: 15px;"><strong>Vernier Coincidence:</strong> Look closely at the 10 small divisions on the bottom sliding scale. Find the <em>single line</em> that perfectly matches up to form an unbroken straight line with any mark on the top scale. This number (0 to 10) is your coincidence.</li>
+                <li><strong>Final Calculation:</strong> Multiply the coincidence by the least count (0.01 cm) and add it to your MSR.<br><br>
+                <div style="font-family: monospace; color: var(--accent); background: var(--bg-main); padding: 10px; border-radius: 4px; border: 1px solid var(--border); display: inline-block;">Final = MSR + (Vernier &times; 0.01)</div>
+                </li>
+            </ol>
+        `;
+    }
+    
+    document.getElementById('instrument-help-modal').style.display = 'flex';
+};
+
+window.closeInstrumentHelp = () => {
+    document.getElementById('instrument-help-modal').style.display = 'none';
+};
+
+// --- SMART TUTOR LOGIC ---
+window.closeSmartHint = () => {
+    const modal = document.getElementById('smart-hint-modal');
+    modal.style.opacity = '0'; // Trigger fade out
+    setTimeout(() => {
+        modal.style.display = 'none';
+        modal.style.opacity = ''; // Reset for next time
+    }, 300);
+};
+
+window.analyzeAndShowError = (instrument, userMSR, actualMSR, userCSR, actualCSR, userFinal, actualFinal) => {
+    let hint = "";
+    
+    // Convert inputs to numbers for safe comparison
+    const uMSR = parseFloat(userMSR);
+    const uCSR = parseInt(userCSR);
+    const uFinal = parseFloat(userFinal);
+    
+    // 1. Did they mess up the Main Scale Reading?
+    if (uMSR !== actualMSR) {
+        if (instrument === 'screwGauge') {
+            if (Math.abs(uMSR - actualMSR) === 0.5) {
+                hint = "<strong>Your Main Scale Reading is slightly off.</strong><br><br>You are off by exactly 0.5 mm. Check the visual closely: is there a bottom half-millimeter tick mark just barely peeking out from under the rotating thimble?";
+            } else {
+                hint = "<strong>Your Main Scale Reading (MSR) is incorrect.</strong><br><br>Count the fully visible marks on the stationary cylinder. Remember, the top marks represent full millimeters, and the bottom marks represent half-millimeters.";
+            }
+        } else if (instrument === 'vernier') {
+            hint = "<strong>Your Main Scale Reading (MSR) is incorrect.</strong><br><br>Locate the <strong>0 (zero) mark</strong> on the sliding Vernier scale. Your MSR is the value on the fixed main scale that is immediately to the <em>left</em> of that zero mark.";
+        }
+    }
+    // 2. Did they mess up the Circular/Vernier Coincidence?
+    else if (uCSR !== actualCSR) {
+        if (instrument === 'screwGauge') {
+            hint = "<strong>Good job on the Main Scale! But your Circular Scale Reading (CSR) is off.</strong><br><br>Look at the central horizontal reference line on the main scale. Which number on the rotating thimble aligns perfectly with it?";
+        } else if (instrument === 'vernier') {
+            hint = "<strong>Main Scale is correct! But your Vernier Coincidence is off.</strong><br><br>Scan carefully along both scales. Find the <em>one specific line</em> on the Vernier scale that forms a perfectly straight, unbroken line with any mark above it on the main scale.";
+        }
+    }
+    // 3. Did they get the readings right, but mess up the math?
+    else if (uFinal !== actualFinal) {
+        const lc = instrument === 'screwGauge' ? "0.01 mm" : "0.01 cm";
+        hint = `<strong>Your individual readings are perfect!</strong> 🎉<br><br>However, your final calculation has a math error. Remember the formula:<br><br><div style="background: var(--bg-main); padding: 10px; margin-top: 10px; border-radius: 6px; text-align: center; font-family: monospace; color: var(--accent);">Final = MSR + (Coincidence &times; ${lc})</div>`;
+    }
+    // Fallback
+    else {
+        hint = "Hmm, something isn't quite right. Double-check your numbers!";
+    }
+
+    // Inject the tailored hint and show the modal
+    document.getElementById('hint-text').innerHTML = hint;
+    document.getElementById('smart-hint-modal').style.display = 'flex';
+};
 
 function isExperimentUnlocked() {
     return typeof MeasurementSession !== 'undefined' && MeasurementSession.isExperimentUnlocked();

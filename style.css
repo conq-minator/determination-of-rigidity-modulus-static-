@@ -97,6 +97,29 @@ h1 { margin-bottom: 5px; font-weight: 700; letter-spacing: 0.5px;}
 }
 .help-btn:hover { border-color: var(--accent); }
 
+/* Inline Instrument Help Buttons */
+.inline-help-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-main);
+    border-radius: 50%;
+    cursor: pointer;
+    width: 26px;
+    height: 26px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8em;
+    padding: 0;
+    margin-left: 8px;
+    transition: all 0.2s ease;
+    vertical-align: middle;
+}
+.inline-help-btn:hover {
+    border-color: var(--accent);
+    background: var(--formula-bg);
+}
+
 /* Polished Tabs */
 .tabs { display: flex; justify-content: center; border-bottom: 2px solid var(--border); margin-bottom: 25px; gap: 15px; }
 .tab-btn { 
@@ -162,16 +185,48 @@ body.light-theme .experiment-lock-overlay { background: rgba(248, 250, 252, 0.92
 .measurements-progress-panel { position: sticky; top: 20px; }
 .progress-tracker { list-style: none; padding: 0; margin: 0; }
 .progress-tracker li {
-    padding: 10px 0;
+    padding: 10px;
+    margin: 0 -10px; /* Offsets the padding so text aligns perfectly with the header */
     border-bottom: 1px solid var(--border);
     display: flex;
     align-items: center;
     gap: 10px;
     font-size: 0.95em;
+    border-radius: 6px;
+    transition: all 0.3s ease;
 }
 .progress-tracker li:last-child { border-bottom: none; }
-.progress-done { color: var(--accent); font-weight: bold; }
-.progress-pending { color: var(--text-muted); }
+
+/* The Animated Green Checkmark */
+.progress-done { 
+    color: #10B981; /* Emerald Green */
+    font-weight: 900; 
+    display: inline-block;
+    animation: checkmarkPop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    text-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+}
+
+.progress-pending { 
+    color: var(--text-muted); 
+    display: inline-block;
+}
+
+/* 1. Pop & Spin animation for the checkmark */
+@keyframes checkmarkPop {
+    0% { transform: scale(0.2) rotate(-20deg); opacity: 0; }
+    50% { transform: scale(1.5) rotate(10deg); opacity: 1; filter: brightness(1.2); }
+    100% { transform: scale(1) rotate(0deg); opacity: 1; filter: brightness(1); }
+}
+
+/* 2. Soft green background flash for the entire row */
+.progress-tracker li:has(.progress-done) {
+    animation: rowCompleteFlash 1s ease-out;
+}
+
+@keyframes rowCompleteFlash {
+    0% { background-color: rgba(16, 185, 129, 0.15); color: #10B981; }
+    100% { background-color: transparent; color: inherit; }
+}
 .measurements-step-panel { margin-bottom: 20px; }
 .measurements-step-panel.measurements-step-active { border-color: var(--accent); }
 input[readonly] { cursor: not-allowed; opacity: 0.85; background: var(--svg-bg); }
@@ -268,10 +323,67 @@ button:active { transform: translateY(0); }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 
 /* Modal Scrollbar */
-#modal > div::-webkit-scrollbar, #help-modal > div::-webkit-scrollbar { width: 8px; }
-#modal > div::-webkit-scrollbar-track, #help-modal > div::-webkit-scrollbar-track { background: var(--bg-main); border-radius: 4px; }
-#modal > div::-webkit-scrollbar-thumb, #help-modal > div::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-#modal > div::-webkit-scrollbar-thumb:hover, #help-modal > div::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+#modal > div::-webkit-scrollbar, #help-modal > div::-webkit-scrollbar, #instrument-help-modal > div::-webkit-scrollbar { width: 8px; }
+#modal > div::-webkit-scrollbar-track, #help-modal > div::-webkit-scrollbar-track, #instrument-help-modal > div::-webkit-scrollbar-track { background: var(--bg-main); border-radius: 4px; }
+#modal > div::-webkit-scrollbar-thumb, #help-modal > div::-webkit-scrollbar-thumb, #instrument-help-modal > div::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+#modal > div::-webkit-scrollbar-thumb:hover, #help-modal > div::-webkit-scrollbar-thumb:hover, #instrument-help-modal > div::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* --- SMART TUTOR HINT MODAL --- */
+.hint-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(5px);
+    z-index: 3000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    animation: fadeInModal 0.3s forwards ease-out;
+}
+
+.hint-panel {
+    background: var(--bg-panel);
+    border: 2px solid var(--accent);
+    border-radius: 12px;
+    width: 90%;
+    max-width: 480px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    transform: translateY(30px);
+    animation: slideUpModal 0.4s forwards cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    overflow: hidden;
+}
+
+.hint-header {
+    background: var(--formula-bg);
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--accent);
+}
+
+.hint-icon {
+    font-size: 1.6em;
+}
+
+.hint-body {
+    padding: 24px;
+    font-size: 1.05em;
+    line-height: 1.6;
+    color: var(--text-main);
+}
+
+.hint-footer {
+    padding: 16px 24px;
+    text-align: right;
+    border-top: 1px solid var(--border);
+    background: var(--svg-bg);
+}
+
+@keyframes fadeInModal { to { opacity: 1; } }
+@keyframes slideUpModal { to { transform: translateY(0); } }
 
 @media (max-width: 900px) {
     .dashboard { grid-template-columns: 1fr; }

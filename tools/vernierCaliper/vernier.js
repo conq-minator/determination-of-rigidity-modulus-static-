@@ -417,7 +417,14 @@
             const finalOk = approxEqual(finalIn, expected.final, 0.01);
 
             if (!msrOk || !vernierOk || !finalOk) {
-                errEl.textContent = 'One or more answers are incorrect. Check MSR, Vernier coincidence, and your calculation.';
+                // Trigger Smart Tutor instead of generic text
+                errEl.textContent = ''; 
+                window.analyzeAndShowError(
+                    'vernier', 
+                    msrIn, expected.msr, 
+                    vernierIn, expected.vernier, 
+                    finalIn, expected.final
+                );
                 return;
             }
 
