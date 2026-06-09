@@ -131,6 +131,7 @@
         </div>
     </div>
 
+    <!-- Templates fallback if external HTML fragments fail to load -->
     <template id="screw-gauge-template">
         <div class="screw-gauge-tool" id="screw-gauge-root">
             <div class="sg-header">
@@ -292,6 +293,7 @@
     </div>
 </div>
 
+<!-- GENERAL EXPERIMENT HELP MODAL -->
 <div id="help-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center;">
     <div style="background: var(--bg-panel); padding: 20px; border-radius: 8px; width: 90%; max-width: 700px; max-height: 90vh; overflow-y: auto; border: 1px solid var(--border);">
         <h3 style="display: flex; justify-content: space-between; margin-top: 0; border-bottom: 1px solid var(--border); padding-bottom: 10px;">
@@ -314,6 +316,7 @@
     </div>
 </div>
 
+<!-- SPECIFIC INSTRUMENT HELP MODAL -->
 <div id="instrument-help-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2500; justify-content: center; align-items: center;">
     <div style="background: var(--bg-panel); padding: 25px; border-radius: 8px; width: 90%; max-width: 600px; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
         <h3 id="inst-help-title" style="display: flex; justify-content: space-between; margin-top: 0; border-bottom: 1px solid var(--border); padding-bottom: 15px; color: var(--accent);">
@@ -321,13 +324,15 @@
             <span style="cursor: pointer; color: var(--text-muted); font-size: 1.2em;" onclick="closeInstrumentHelp()">&times;</span>
         </h3>
         <div id="inst-help-content" style="line-height: 1.6; margin-top: 20px; font-size: 1.05em; color: var(--text-main);">
-            </div>
+            <!-- Content gets injected by JS here -->
+        </div>
         <div style="text-align: right; margin-top: 25px;">
             <button class="primary" onclick="closeInstrumentHelp()">Got it</button>
         </div>
     </div>
 </div>
 
+<!-- GRAPH MODAL -->
 <div id="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center;">
     <div style="background: var(--bg-panel); padding: 20px; border-radius: 8px; width: 90%; max-width: 850px; max-height: 90vh; overflow-y: auto; border: 1px solid var(--border);">
         <h3 style="display: flex; justify-content: space-between; margin-top: 0;">
@@ -373,6 +378,7 @@
     </div>
 </div>
 
+<!-- SMART TUTOR HINT MODAL -->
 <div id="smart-hint-modal" class="hint-overlay" style="display: none;">
     <div class="hint-panel">
         <div class="hint-header">
@@ -387,6 +393,11 @@
         </div>
     </div>
 </div>
+
+<!-- SITE FOOTER -->
+<footer style="margin-top: 40px; padding: 20px 0; text-align: center; color: var(--text-muted); font-size: 0.95em; width: 100%; border-top: 1px solid var(--border); letter-spacing: 0.5px;">
+    Designed & Developed by <strong>Kamalika Chakraborty</strong>, <strong>Rohit Chakravorty</strong>, and <strong>Soumik Bhuniya</strong>
+</footer>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="tools/measurementSession.js"></script>
