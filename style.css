@@ -183,21 +183,22 @@ body.light-theme .experiment-lock-overlay { background: rgba(248, 250, 252, 0.92
     align-items: start;
 }
 .measurements-progress-panel { position: sticky; top: 20px; }
+
+/* Progress Tracker Styling & Animations */
 .progress-tracker { list-style: none; padding: 0; margin: 0; }
 .progress-tracker li {
-    padding: 10px;
-    margin: 0 -10px; /* Offsets the padding so text aligns perfectly with the header */
+    padding: 10px 12px; /* Slight horizontal padding adjustment */
+    margin: 0 -12px; /* Offset to align text */
     border-bottom: 1px solid var(--border);
     display: flex;
     align-items: center;
     gap: 10px;
     font-size: 0.95em;
-    border-radius: 6px;
+    border-radius: 8px;
     transition: all 0.3s ease;
 }
 .progress-tracker li:last-child { border-bottom: none; }
 
-/* The Animated Green Checkmark */
 .progress-done { 
     color: #10B981; /* Emerald Green */
     font-weight: 900; 
@@ -211,22 +212,36 @@ body.light-theme .experiment-lock-overlay { background: rgba(248, 250, 252, 0.92
     display: inline-block;
 }
 
-/* 1. Pop & Spin animation for the checkmark */
 @keyframes checkmarkPop {
     0% { transform: scale(0.2) rotate(-20deg); opacity: 0; }
     50% { transform: scale(1.5) rotate(10deg); opacity: 1; filter: brightness(1.2); }
     100% { transform: scale(1) rotate(0deg); opacity: 1; filter: brightness(1); }
 }
 
-/* 2. Soft green background flash for the entire row */
+/* The new permanent ring & background flash */
 .progress-tracker li:has(.progress-done) {
-    animation: rowCompleteFlash 1s ease-out;
+    animation: rowCompleteFlash 1.2s ease-out forwards;
+    border-bottom-color: transparent; /* hide the standard bottom border when highlighted */
 }
 
 @keyframes rowCompleteFlash {
-    0% { background-color: rgba(16, 185, 129, 0.15); color: #10B981; }
-    100% { background-color: transparent; color: inherit; }
+    0% { 
+        background-color: transparent; 
+        box-shadow: inset 0 0 0 0 rgba(16, 185, 129, 0); 
+    }
+    20% { 
+        background-color: rgba(16, 185, 129, 0.2); 
+        box-shadow: inset 0 0 0 2px #10B981; 
+        transform: scale(1.02); 
+    }
+    100% { 
+        background-color: rgba(16, 185, 129, 0.08); /* Keeps a soft permanent green tint */
+        box-shadow: inset 0 0 0 1px rgba(16, 185, 129, 0.4); /* Keeps a soft permanent green border */
+        transform: scale(1); 
+    }
 }
+
+
 .measurements-step-panel { margin-bottom: 20px; }
 .measurements-step-panel.measurements-step-active { border-color: var(--accent); }
 input[readonly] { cursor: not-allowed; opacity: 0.85; background: var(--svg-bg); }
