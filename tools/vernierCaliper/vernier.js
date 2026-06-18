@@ -228,17 +228,10 @@
                 this.root = this.container.querySelector('#vernier-caliper-root') || this.container.querySelector('.vernier-caliper-tool');
                 this.bindEvents();
                 this.initDisplay();
+                if (global.initPanZoom) global.initPanZoom('vernier');
             };
 
-            fetch('tools/vernierCaliper/vernier.html')
-                .then(r => (r.ok ? r.text() : Promise.reject()))
-                .then(html => {
-                    this.container.innerHTML = html;
-                    this.root = this.container.querySelector('#vernier-caliper-root') || this.container.firstElementChild;
-                    this.bindEvents();
-                    this.initDisplay();
-                })
-                .catch(useTemplate);
+            useTemplate();
         },
 
         initDisplay() {
@@ -343,12 +336,14 @@
             const mode = idx === 0 ? 'full' : idx === 1 ? 'partial' : 'independent';
             const isGuidedOnly = idx === 0;
 
-            this.root.querySelector('[data-vc-badge]').textContent = `Reading ${idx + 1} of 4`;
+            const badge = this.root.querySelector('[data-vc-badge]');
+            if (badge) badge.textContent = `Reading ${idx + 1} of 4`;
             
             this.renderSVGOnly();
             this.renderHistory();
 
-            this.root.querySelector('[data-vc-guide]').innerHTML = getGuideContent(idx, reading, mode);
+            const guideEl = this.root.querySelector('[data-vc-guide]');
+            if (guideEl) guideEl.innerHTML = getGuideContent(idx, reading, mode);
 
             const inputSection = this.root.querySelector('[data-vc-inputs]');
             const nextBtn = this.root.querySelector('[data-vc-next]');
@@ -356,15 +351,20 @@
             if (errEl) errEl.textContent = '';
 
             if (isGuidedOnly) {
-                inputSection.style.display = 'none';
-                nextBtn.style.display = 'inline-block';
-                nextBtn.textContent = idx < 3 ? 'Next Reading' : 'Complete Vernier Caliper';
+                if (inputSection) inputSection.style.display = 'none';
+                if (nextBtn) {
+                    nextBtn.style.display = 'inline-block';
+                    nextBtn.textContent = idx < 3 ? 'Next Reading' : 'Complete Vernier Caliper';
+                }
             } else {
-                inputSection.style.display = 'block';
-                nextBtn.style.display = 'none';
-                this.root.querySelector('[data-vc-msr]').value = '';
-                this.root.querySelector('[data-vc-vernier]').value = '';
-                this.root.querySelector('[data-vc-final]').value = '';
+                if (inputSection) inputSection.style.display = 'block';
+                if (nextBtn) nextBtn.style.display = 'none';
+                const msr = this.root.querySelector('[data-vc-msr]');
+                const vcs = this.root.querySelector('[data-vc-vernier]');
+                const fin = this.root.querySelector('[data-vc-final]');
+                if (msr) msr.value = '';
+                if (vcs) vcs.value = '';
+                if (fin) fin.value = '';
             }
         },
 

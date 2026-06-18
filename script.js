@@ -29,7 +29,7 @@ let currentT2 = 0;
 window.toggleTheme = () => {
     document.body.classList.toggle('light-theme');
     const isLight = document.body.classList.contains('light-theme');
-    document.getElementById('theme-btn').innerHTML = isLight ? '🌙 Dark Mode' : '☀️ Light Mode';
+    document.getElementById('theme-btn').innerHTML = isLight ? '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 6px;"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg> Dark Mode' : '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 6px;"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg> Light Mode';
     
     // Redraw SVG scales to update text colors
     initBackgroundScales();
@@ -427,10 +427,105 @@ function preventDimensionTampering() {
     });
 }
 
+// --- ZOOM & PAN LOGIC ---
+const zoomState = {
+    screwGauge: { scale: 1, translateX: 0, translateY: 0, isDragging: false, startX: 0, startY: 0 },
+    vernier: { scale: 1, translateX: 0, translateY: 0, isDragging: false, startX: 0, startY: 0 }
+};
+
+window.zoomInstrument = (instrument, factor) => {
+    const state = zoomState[instrument];
+    state.scale *= factor;
+    state.scale = Math.max(0.5, Math.min(state.scale, 5));
+    applyZoom(instrument);
+};
+
+window.resetZoom = (instrument) => {
+    const state = zoomState[instrument];
+    state.scale = 1;
+    state.translateX = 0;
+    state.translateY = 0;
+    applyZoom(instrument);
+};
+
+function applyZoom(instrument) {
+    const selector = instrument === 'screwGauge' ? '.sg-svg' : '.vc-svg';
+    const svgEl = document.querySelector(selector);
+    if (svgEl) {
+        const state = zoomState[instrument];
+        svgEl.style.transform = `translate(${state.translateX}px, ${state.translateY}px) scale(${state.scale})`;
+    }
+}
+
+window.initPanZoom = (instrument) => {
+    const wrapperSelector = instrument === 'screwGauge' ? '.sg-instrument-wrap' : '.vc-instrument-wrap';
+    const wrapper = document.querySelector(wrapperSelector);
+    if (!wrapper || wrapper.dataset.panZoomInit) return;
+    wrapper.dataset.panZoomInit = 'true';
+
+    const state = zoomState[instrument];
+    
+    // Mouse Events
+    wrapper.addEventListener('mousedown', (e) => {
+        if(e.target.closest('.zoom-toolbar')) return; // ignore toolbar clicks
+        state.isDragging = true;
+        state.startX = e.clientX - state.translateX;
+        state.startY = e.clientY - state.translateY;
+        wrapper.style.cursor = 'grabbing';
+    });
+    
+    window.addEventListener('mousemove', (e) => {
+        if (!state.isDragging) return;
+        state.translateX = e.clientX - state.startX;
+        state.translateY = e.clientY - state.startY;
+        applyZoom(instrument);
+    });
+    
+    window.addEventListener('mouseup', () => {
+        if(state.isDragging) {
+            state.isDragging = false;
+            wrapper.style.cursor = 'grab';
+        }
+    });
+
+    // Touch Events for Mobile
+    wrapper.addEventListener('touchstart', (e) => {
+        if(e.target.closest('.zoom-toolbar')) return;
+        if(e.touches.length === 1) {
+            state.isDragging = true;
+            state.startX = e.touches[0].clientX - state.translateX;
+            state.startY = e.touches[0].clientY - state.translateY;
+        }
+    }, { passive: true });
+
+    wrapper.addEventListener('touchmove', (e) => {
+        if (!state.isDragging) return;
+        if(e.touches.length === 1) {
+            e.preventDefault(); // Prevent page scroll while panning
+            state.translateX = e.touches[0].clientX - state.startX;
+            state.translateY = e.touches[0].clientY - state.startY;
+            applyZoom(instrument);
+        }
+    }, { passive: false });
+
+    wrapper.addEventListener('touchend', () => {
+        if(state.isDragging) {
+            state.isDragging = false;
+        }
+    });
+    
+    // Mouse Wheel Zoom
+    wrapper.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const factor = e.deltaY < 0 ? 1.1 : 0.9;
+        window.zoomInstrument(instrument, factor);
+    }, { passive: false });
+};
+
 window.onload = () => {
     if (typeof MeasurementSession !== 'undefined') MeasurementSession.init();
     preventDimensionTampering();
     initBackgroundScales();
     tableData[0] = { inc:{t1:'0.00',t2:'0.00',d:'0.00'}, dec:{t1:'-',t2:'-',d:'-'} };
     renderTable();
-};
+};

@@ -227,17 +227,10 @@
                 this.root = this.container.querySelector('#screw-gauge-root') || this.container.querySelector('.screw-gauge-tool');
                 this.bindEvents();
                 this.initDisplay();
+                if (global.initPanZoom) global.initPanZoom('screwGauge');
             };
 
-            fetch('tools/screwGauge/screwGauge.html')
-                .then(r => (r.ok ? r.text() : Promise.reject()))
-                .then(html => {
-                    this.container.innerHTML = html;
-                    this.root = this.container.querySelector('#screw-gauge-root') || this.container.firstElementChild;
-                    this.bindEvents();
-                    this.initDisplay();
-                })
-                .catch(useTemplate);
+            useTemplate();
         },
 
         initDisplay() {
@@ -313,12 +306,14 @@
             const mode = idx === 0 ? 'full' : idx === 1 ? 'partial' : 'independent';
             const isGuidedOnly = idx === 0;
 
-            this.root.querySelector('[data-sg-badge]').textContent = `Reading ${idx + 1} of 4`;
+            const badge = this.root.querySelector('[data-sg-badge]');
+            if (badge) badge.textContent = `Reading ${idx + 1} of 4`;
 
             this.renderSVGOnly();
             this.renderHistory();
 
-            this.root.querySelector('[data-sg-guide]').innerHTML = getGuideContent(idx, reading, mode);
+            const guideEl = this.root.querySelector('[data-sg-guide]');
+            if (guideEl) guideEl.innerHTML = getGuideContent(idx, reading, mode);
 
             const inputSection = this.root.querySelector('[data-sg-inputs]');
             const nextBtn = this.root.querySelector('[data-sg-next]');
@@ -326,15 +321,20 @@
             if (errEl) errEl.textContent = '';
 
             if (isGuidedOnly) {
-                inputSection.style.display = 'none';
-                nextBtn.style.display = 'inline-block';
-                nextBtn.textContent = idx < 3 ? 'Next Reading' : 'Complete Screw Gauge';
+                if (inputSection) inputSection.style.display = 'none';
+                if (nextBtn) {
+                    nextBtn.style.display = 'inline-block';
+                    nextBtn.textContent = idx < 3 ? 'Next Reading' : 'Complete Screw Gauge';
+                }
             } else {
-                inputSection.style.display = 'block';
-                nextBtn.style.display = 'none';
-                this.root.querySelector('[data-sg-msr]').value = '';
-                this.root.querySelector('[data-sg-csr]').value = '';
-                this.root.querySelector('[data-sg-final]').value = '';
+                if (inputSection) inputSection.style.display = 'block';
+                if (nextBtn) nextBtn.style.display = 'none';
+                const msr = this.root.querySelector('[data-sg-msr]');
+                const csr = this.root.querySelector('[data-sg-csr]');
+                const fin = this.root.querySelector('[data-sg-final]');
+                if (msr) msr.value = '';
+                if (csr) csr.value = '';
+                if (fin) fin.value = '';
             }
         },
 
