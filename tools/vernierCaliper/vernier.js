@@ -110,15 +110,7 @@
             }
         }
 
-        // Highlight MSR (Main Scale Reading)
-        if (highlightMSR) {
-            html += `<g class="vc-highlight-msr">`;
-            html += `<line x1="${zeroMarkX}" y1="${beamY + beamHeight - 25}" x2="${zeroMarkX}" y2="${beamY + beamHeight + 35}" stroke="${accent}" stroke-width="2.5" stroke-dasharray="4,2"/>`;
-            html += `<rect x="${zeroMarkX - 35}" y="${beamY + beamHeight + 40}" width="70" height="20" fill="${panelBg}" rx="4" stroke="${accent}" stroke-width="1"/>`;
-            html += `<text x="${zeroMarkX}" y="${beamY + beamHeight + 54}" text-anchor="middle" fill="${accent}" font-size="11" font-weight="bold">MSR: ${msr.toFixed(1)}</text>`;
-            html += `</g>`;
-        }
-
+    
         // ═══════════════════════════════════════════
         // 3. SLIDING VERNIER ASSEMBLY
         // ═══════════════════════════════════════════
@@ -176,7 +168,14 @@
         }
         
         html += `</g>`;
-
+        // Highlight MSR (Main Scale Reading)
+        if (highlightMSR) {
+            html += `<g class="vc-highlight-msr">`;
+            html += `<line x1="${zeroMarkX}" y1="${beamY + beamHeight - 25}" x2="${zeroMarkX}" y2="${beamY + beamHeight + 35}" stroke="${accent}" stroke-width="2.5" stroke-dasharray="4,2"/>`;
+            html += `<rect x="${zeroMarkX - 35}" y="${beamY + beamHeight + 40}" width="70" height="20" fill="${panelBg}" rx="4" stroke="${accent}" stroke-width="1"/>`;
+            html += `<text x="${zeroMarkX}" y="${beamY + beamHeight + 54}" text-anchor="middle" fill="${accent}" font-size="11" font-weight="bold">MSR: ${msr.toFixed(1)}</text>`;
+            html += `</g>`;
+        }
         svg.innerHTML = html;
     }
 
