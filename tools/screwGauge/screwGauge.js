@@ -3,9 +3,9 @@
  */
 (function (global) {
     const TOLERANCE = 0.005;
-    const CSR_DIVISIONS = 100;
+    const CSR_DIVISIONS = 50;
     const SCREW_LC = 0.01;
-    const PITCH_MM = 1;
+    const PITCH_MM = 0.5;
 
     function approxEqual(a, b, tol = TOLERANCE) {
         return Math.abs(parseFloat(a) - parseFloat(b)) <= tol;

@@ -4,7 +4,7 @@
  */
 (function (global) {
     const SCREW_LC = 0.01;   // mm (pitch 1 mm, 100 circular divisions)
-    const SCREW_CSR_DIVISIONS = 100;
+    const SCREW_CSR_DIVISIONS = 50;
     const VERNIER_LC = 0.01; // cm
     const ROD_VARIATION = 0.05;
     const PULLEY_VARIATION = 0.05;
@@ -24,7 +24,7 @@
         let msr = Math.floor(final * 2) / 2;
         let csr = Math.round((final - msr) / SCREW_LC);
         if (csr >= SCREW_CSR_DIVISIONS) {
-            msr = round2(msr + 1);
+            msr = round2(msr + 0.5);
             csr -= SCREW_CSR_DIVISIONS;
         }
         if (csr < 0) {
