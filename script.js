@@ -29,16 +29,26 @@ let currentT2 = 0;
 window.toggleTheme = () => {
     document.body.classList.toggle('light-theme');
     const isLight = document.body.classList.contains('light-theme');
-    document.getElementById('theme-btn').innerHTML = isLight ? '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 6px;"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg> Dark Mode' : '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 6px;"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg> Light Mode';
-    
+    const icon = document.getElementById('theme-icon');
+
+    // Update the icon inside the button
+    if (isLight) {
+        // Show Moon for Light Mode
+        icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
+    } else {
+        // Show Sun for Dark Mode
+        icon.innerHTML = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>';
+    }
+
     // Redraw SVG scales to update text colors
     initBackgroundScales();
     drawPrecisionScales(currentT1, currentT2);
 
     // Redraw chart if it is currently open
     if (myChart && document.getElementById('modal').style.display === 'flex') {
-        showPopupGraph();
+        generateFinalResults(); // Ensure this matches your new processing function name
     }
+    
     if (typeof MeasurementsHub !== 'undefined') MeasurementsHub.onThemeChange();
 };
 
@@ -141,8 +151,8 @@ function isExperimentUnlocked() {
 }
 
 window.goToMeasurementsTab = () => {
-    const btn = document.querySelector('.tab-btn[onclick*="measurements"]');
-    switchTab({ currentTarget: btn }, 'measurements');
+    const btn = document.querySelector('.tab-btn[onclick*="simulation"]');
+    switchTab({ currentTarget: btn }, 'simulation');
 };
 
 function showExperimentLockToast() {
@@ -155,41 +165,31 @@ function showExperimentLockToast() {
 }
 
 window.unlockExperimentTab = () => {
-    const expTab = document.getElementById('experiment-tab-btn');
     const expContent = document.getElementById('experiment');
     const overlay = document.getElementById('experiment-lock-overlay');
-    if (expTab) {
-        expTab.classList.remove('tab-btn-locked');
-        expTab.removeAttribute('title');
-    }
+    
     if (expContent) expContent.classList.remove('experiment-locked');
     if (overlay) overlay.style.display = 'none';
+    
     MeasurementSession.applyToExperimentFields();
 };
 
 window.switchTab = (evt, tabId) => {
-    if (tabId === 'experiment' && !isExperimentUnlocked()) {
-        showExperimentLockToast();
-        if (evt && evt.currentTarget) evt.currentTarget.classList.remove('active');
-        const measurementsBtn = Array.from(document.querySelectorAll('.tab-btn')).find(
-            b => b.getAttribute('onclick')?.includes("'measurements'")
-        );
-        if (measurementsBtn && !document.getElementById('measurements').classList.contains('active')) {
-            /* keep current tab active */
-        }
+    // Prevent clicking locked tabs
+    if ((tabId === 'calculation' || tabId === 'error-analysis') && evt && evt.currentTarget.classList.contains('tab-btn-locked')) {
+        alert("Please complete the simulation and process the results first.");
         return;
     }
 
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    
     document.getElementById(tabId).classList.add('active');
     if (evt && evt.currentTarget) evt.currentTarget.classList.add('active');
 
-    if (tabId === 'measurements' && typeof MeasurementsHub !== 'undefined') {
+    // Trigger the measurement tools when the simulation tab is opened
+    if (tabId === 'simulation' && typeof MeasurementsHub !== 'undefined') {
         MeasurementsHub.init();
-    }
-    if (tabId === 'experiment' && typeof MeasurementsHub !== 'undefined') {
-        MeasurementsHub.markExperimentPerformed();
     }
 };
 
@@ -287,18 +287,15 @@ function renderTable() {
     if (sortedMasses.length >= 3) document.getElementById('plot-btn').style.display = 'block';
 }
 
-window.showPopupGraph = () => {
+window.generateFinalResults = () => {
     if (!isExperimentUnlocked()) {
         return alert("Complete all required measurements before viewing analysis.");
     }
-    document.getElementById('modal').style.display = 'flex';
-    if (typeof MeasurementsHub !== 'undefined') MeasurementsHub.markGraphGenerated();
-    const ctx = document.getElementById('graph-canvas').getContext('2d');
-    
-    // Dynamically grab CSS colors based on current theme
-    const textColor = getComputedStyle(document.body).getPropertyValue('--text-main').trim();
-    const gridColor = getComputedStyle(document.body).getPropertyValue('--border').trim();
-    
+    if (typeof MeasurementsHub !== 'undefined') {
+        MeasurementsHub.markExperimentPerformed();
+        MeasurementsHub.markGraphGenerated();
+    }
+
     let sumXY = 0;
     let sumX2 = 0;
     let max_phi_reading = 0;
@@ -315,7 +312,6 @@ window.showPopupGraph = () => {
             sumX2 += m * m;
             max_phi_reading = Math.max(max_phi_reading, yVal);
         }
-
         return {x: m, y: yVal};
     });
 
@@ -346,21 +342,58 @@ window.showPopupGraph = () => {
     const err_frac_D = LEAST_COUNTS.D / D_raw;
     const err_frac_d = LEAST_COUNTS.d / d_raw;
     const err_frac_phi = LEAST_COUNTS.phi / max_phi_reading;
-
     const total_frac_error = err_frac_L + err_frac_D + (4 * err_frac_d) + err_frac_phi;
 
-    document.getElementById('res-slope').innerText = slope.toFixed(4);
-    
-    const eta_dyne = eta_exp * 10;
-    document.getElementById('res-eta').innerHTML = (eta_dyne / 1e11).toFixed(2) + " &times; 10<sup>11</sup>";
-    document.getElementById('res-mat').innerText = identifiedMaterial;
+    // --- Inject HTML into the Calculation Tab ---
+    const calcMount = document.getElementById('calc-results-mount');
+    calcMount.innerHTML = `
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start;">
+            <div style="background: var(--bg-panel); padding: 15px; border-radius: 8px; border: 1px solid var(--border);">
+                <canvas id="graph-canvas" height="250"></canvas>
+            </div>
+            <div style="background: var(--svg-bg); padding: 25px; border-radius: 8px; border: 1px solid var(--border); font-size: 1.1em; line-height: 2;">
+                <h3 style="margin-top: 0; color: var(--accent); border-bottom: 1px solid var(--border); padding-bottom: 10px;">Results Summary</h3>
+                <p><strong>Calculated Slope (&phi;/M):</strong> ${slope.toFixed(4)} &deg;/kg</p>
+                <p><strong>Experimental &eta;:</strong> ${(eta_exp * 10 / 1e11).toFixed(2)} &times; 10<sup>11</sup> dyne/cm&sup2;</p>
+                <p><strong>Identified Material:</strong> <span style="text-transform: capitalize; color: var(--accent); font-weight: bold;">${identifiedMaterial}</span></p>
+            </div>
+        </div>
+    `;
 
-    document.getElementById('err-L').innerText = err_frac_L.toFixed(4);
-    document.getElementById('err-D').innerText = err_frac_D.toFixed(4);
-    document.getElementById('err-d').innerText = (4 * err_frac_d).toFixed(4);
-    document.getElementById('err-phi').innerText = err_frac_phi.toFixed(4);
-    document.getElementById('err-frac').innerText = total_frac_error.toFixed(4);
-    document.getElementById('err-pct').innerText = (total_frac_error * 100).toFixed(2);
+    // --- Inject HTML into the Error Analysis Tab ---
+    const errorMount = document.getElementById('error-results-mount');
+    errorMount.innerHTML = `
+        <div style="background: var(--bg-panel); padding: 25px; border-radius: 8px; font-family: monospace; font-size: 1.1em; line-height: 1.8; border: 1px solid var(--border);">
+            <strong style="color: #ff7b72; font-size: 1.2em;">Maximum Error Calculation:</strong><br>
+            <span style="color: var(--text-muted);">(Assuming error in standard weights &Delta;M is negligible)</span>
+            
+            <div style="margin: 20px 0; padding: 15px; border-left: 4px solid var(--accent); background: var(--formula-bg); color: var(--text-main);">
+                <strong>Variables Legend:</strong><br>
+                • <strong>&Delta;L</strong>, <strong>&Delta;D</strong>, <strong>&Delta;d</strong>, <strong>&Delta;&phi;</strong> : Instrumental least counts (Max error)<br>
+                • <strong>L</strong> : Working pin separation (cm)<br>
+                • <strong>D</strong> : Diameter of the pulley wheel (cm)<br>
+                • <strong>d</strong> : Diameter of the experimental rod (mm)<br>
+                • <strong>&phi;</strong> : Maximum angle of twist measured (&deg;)<br>
+            </div>
+
+            <div style="font-weight: bold; margin-bottom: 15px; font-size: 1.2em; color: var(--text-main);">&Delta;&eta;/&eta; = &Delta;L/L + &Delta;D/D + 4(&Delta;d/d) + &Delta;&phi;/&phi;</div>
+            
+            <div style="margin-left: 20px; color: var(--text-muted);">
+                &Delta;L/L = ${err_frac_L.toFixed(4)}<br>
+                &Delta;D/D = ${err_frac_D.toFixed(4)}<br>
+                4 * (&Delta;d/d) = ${(4 * err_frac_d).toFixed(4)}<br>
+                &Delta;&phi;/&phi; = ${err_frac_phi.toFixed(4)}<br>
+            </div>
+            <hr style="border: 1px dashed var(--border); margin: 15px 0;">
+            <strong style="font-size: 1.3em;">Max Fractional Error = <span style="color: var(--accent);">${total_frac_error.toFixed(4)}</span></strong><br>
+            <strong style="font-size: 1.3em;">Max Percentage Error = <span style="color: var(--accent);">${(total_frac_error * 100).toFixed(2)}%</span></strong>
+        </div>
+    `;
+
+    // --- Draw the Chart ---
+    const ctx = document.getElementById('graph-canvas').getContext('2d');
+    const textColor = getComputedStyle(document.body).getPropertyValue('--text-main').trim();
+    const gridColor = getComputedStyle(document.body).getPropertyValue('--border').trim();
 
     if (myChart) myChart.destroy();
     myChart = new Chart(ctx, {
@@ -392,9 +425,19 @@ window.showPopupGraph = () => {
             plugins: { legend: { labels: { color: textColor } } }
         }
     });
+
+    // --- Unlock Tabs & Switch ---
+    const calcTab = document.getElementById('calc-tab-btn');
+    const errorTab = document.getElementById('error-tab-btn');
+    
+    calcTab.classList.remove('tab-btn-locked');
+    calcTab.removeAttribute('title');
+    errorTab.classList.remove('tab-btn-locked');
+    errorTab.removeAttribute('title');
+
+    switchTab({ currentTarget: calcTab }, 'calculation');
 };
 
-window.closeModal = () => document.getElementById('modal').style.display = 'none';
 
 function initBackgroundScales() {
     // Dynamic text colors for SVG based on theme
@@ -528,4 +571,4 @@ window.onload = () => {
     initBackgroundScales();
     tableData[0] = { inc:{t1:'0.00',t2:'0.00',d:'0.00'}, dec:{t1:'-',t2:'-',d:'-'} };
     renderTable();
-};
+};

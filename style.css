@@ -57,22 +57,26 @@ header { text-align: center; margin-bottom: 30px; }
 h1 { margin-bottom: 5px; font-weight: 700; letter-spacing: 0.5px;}
 
 /* Theme & Help Buttons */
+/* Update this in style.css */
 .theme-btn {
-    position: absolute;
-    right: 0;
-    top: 50%;
-    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;    /* Force circular size */
+    height: 40px;
+    padding: 0;
+    border-radius: 50%; /* Makes it a circle */
     background: var(--bg-panel);
     border: 1px solid var(--border);
-    color: var(--text-main);
-    padding: 8px 16px;
-    border-radius: 20px;
     cursor: pointer;
-    font-weight: 600;
+    color: var(--text-main);
     transition: all 0.3s ease;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
-.theme-btn:hover { border-color: var(--accent); }
+
+.theme-btn:hover {
+    background: var(--accent);
+    color: white;
+}
 
 .help-btn {
     position: absolute;
