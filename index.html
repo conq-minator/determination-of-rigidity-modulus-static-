@@ -42,7 +42,6 @@
         <button class="tab-btn" onclick="switchTab(event, 'apparatus')">Apparatus</button>
         <button class="tab-btn" onclick="switchTab(event, 'simulation')">Simulation</button>
         <button class="tab-btn tab-btn-locked" id="calc-tab-btn" onclick="switchTab(event, 'calculation')" title="Complete the simulation first">Calculation</button>
-        <button class="tab-btn tab-btn-locked" id="error-tab-btn" onclick="switchTab(event, 'error-analysis')" title="Complete calculations first">Error Analysis</button>
     </div>
 
     <div id="experiment-lock-toast" class="experiment-lock-toast" role="status" aria-live="polite"></div>
@@ -207,7 +206,10 @@
                     </div>
                     <div class="control-group">
                         <label>Pin Separation L (cm)</label>
-                        <input type="number" id="pin-sep" value="100">
+                        <select id="pin-sep">
+                            <option value="20">20</option>
+                            <option value="25">25</option>
+                        </select>
                     </div>
                     <div class="control-group">
                         <label>Pulley Diameter D (cm)</label>
@@ -265,19 +267,12 @@
 
     <div id="calculation" class="tab-content">
         <div class="text-panel">
-            <h2>Calculation Step-by-Step</h2>
+            <h2>Calculation</h2>
             <div id="calc-results-mount">
-                <p style="color: var(--text-muted); text-align: center; padding: 40px;">Complete the simulation and process the results to view calculations.</p>
+                <p style="color: var(--text-muted); text-align: center; padding: 40px;">Complete the simulation and process the results to view calculations and error analysis.</p>
             </div>
-        </div>
-    </div>
-
-    <div id="error-analysis" class="tab-content">
-        <div class="text-panel">
-            <h2>Error Analysis</h2>
-            <div id="error-results-mount">
-                <p style="color: var(--text-muted); text-align: center; padding: 40px;">Complete the simulation and process the results to view error analysis.</p>
-            </div>
+            
+            <div id="error-results-mount" style="margin-top: 40px;"></div>
         </div>
     </div>
 

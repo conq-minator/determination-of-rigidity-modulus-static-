@@ -45,7 +45,7 @@ window.toggleTheme = () => {
     drawPrecisionScales(currentT1, currentT2);
 
     // Redraw chart if it is currently open
-    if (myChart && document.getElementById('modal').style.display === 'flex') {
+    if (myChart && document.getElementById('modal') && document.getElementById('modal').style.display === 'flex') {
         generateFinalResults(); // Ensure this matches your new processing function name
     }
     
@@ -176,7 +176,7 @@ window.unlockExperimentTab = () => {
 
 window.switchTab = (evt, tabId) => {
     // Prevent clicking locked tabs
-    if ((tabId === 'calculation' || tabId === 'error-analysis') && evt && evt.currentTarget.classList.contains('tab-btn-locked')) {
+    if (tabId === 'calculation' && evt && evt.currentTarget.classList.contains('tab-btn-locked')) {
         alert("Please complete the simulation and process the results first.");
         return;
     }
@@ -360,7 +360,7 @@ window.generateFinalResults = () => {
         </div>
     `;
 
-    // --- Inject HTML into the Error Analysis Tab ---
+    // --- Inject HTML for Error Analysis (now into the calculation tab) ---
     const errorMount = document.getElementById('error-results-mount');
     errorMount.innerHTML = `
         <div style="background: var(--bg-panel); padding: 25px; border-radius: 8px; font-family: monospace; font-size: 1.1em; line-height: 1.8; border: 1px solid var(--border);">
@@ -428,12 +428,9 @@ window.generateFinalResults = () => {
 
     // --- Unlock Tabs & Switch ---
     const calcTab = document.getElementById('calc-tab-btn');
-    const errorTab = document.getElementById('error-tab-btn');
     
     calcTab.classList.remove('tab-btn-locked');
     calcTab.removeAttribute('title');
-    errorTab.classList.remove('tab-btn-locked');
-    errorTab.removeAttribute('title');
 
     switchTab({ currentTarget: calcTab }, 'calculation');
 };
