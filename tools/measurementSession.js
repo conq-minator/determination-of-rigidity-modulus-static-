@@ -8,7 +8,7 @@
     const VERNIER_LC = 0.01; // cm
     const ROD_VARIATION = 0.05;
     const PULLEY_VARIATION = 0.05;
-    const NUM_READINGS = 4;
+    const NUM_READINGS = 2;
 
     function randInRange(min, max) {
         return min + Math.random() * (max - min);

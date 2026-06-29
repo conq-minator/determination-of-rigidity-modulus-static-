@@ -307,7 +307,7 @@
             const isGuidedOnly = idx === 0;
 
             const badge = this.root.querySelector('[data-sg-badge]');
-            if (badge) badge.textContent = `Reading ${idx + 1} of 4`;
+            if (badge) badge.textContent = `Reading ${idx + 1} of 2`;
 
             this.renderSVGOnly();
             this.renderHistory();
@@ -324,7 +324,7 @@
                 if (inputSection) inputSection.style.display = 'none';
                 if (nextBtn) {
                     nextBtn.style.display = 'inline-block';
-                    nextBtn.textContent = idx < 3 ? 'Next Reading' : 'Complete Screw Gauge';
+                    nextBtn.textContent = idx < 1 ? 'Next Reading' : 'Complete Screw Gauge';
                 }
             } else {
                 if (inputSection) inputSection.style.display = 'block';
@@ -410,9 +410,9 @@
                 sg.studentFinals.push(sg.readings[0].final);
             }
 
-            if (idx >= 3) {
+            if (idx >= 1) {
                 sg.completed = true;
-                sg.currentIndex = 4;
+                sg.currentIndex = 2;
                 this.showComplete();
                 
                 // CRITICAL FIX: Only fire ONE callback to let the measurementsController handle it
@@ -433,7 +433,7 @@
             this.root.innerHTML = `
                 <div class="sg-complete-banner">
                     <strong>✓ Screw Gauge Completed</strong>
-                    <p style="margin:8px 0 0;color:var(--text-muted);">Four readings recorded. Average rod diameter: <strong style="color:var(--accent)">${avg.toFixed(2)} mm</strong></p>
+                    <p style="margin:8px 0 0;color:var(--text-muted);">Two readings recorded. Average rod diameter: <strong style="color:var(--accent)">${avg.toFixed(2)} mm</strong></p>
                 </div>
             `;
         },

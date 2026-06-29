@@ -336,7 +336,7 @@
             const isGuidedOnly = idx === 0;
 
             const badge = this.root.querySelector('[data-vc-badge]');
-            if (badge) badge.textContent = `Reading ${idx + 1} of 4`;
+            if (badge) badge.textContent = `Reading ${idx + 1} of 2`;
             
             this.renderSVGOnly();
             this.renderHistory();
@@ -353,7 +353,7 @@
                 if (inputSection) inputSection.style.display = 'none';
                 if (nextBtn) {
                     nextBtn.style.display = 'inline-block';
-                    nextBtn.textContent = idx < 3 ? 'Next Reading' : 'Complete Vernier Caliper';
+                    nextBtn.textContent = idx < 1 ? 'Next Reading' : 'Complete Vernier Caliper';
                 }
             } else {
                 if (inputSection) inputSection.style.display = 'block';
@@ -439,9 +439,9 @@
                 vc.studentFinals.push(vc.readings[0].final);
             }
 
-            if (idx >= 3) {
+            if (idx >= 1) {
                 vc.completed = true;
-                vc.currentIndex = 4;
+                vc.currentIndex = 2;
                 this.showComplete();
                 if (this.onComplete) this.onComplete();
                 if (global.MeasurementsHub) global.MeasurementsHub.onToolComplete();
@@ -459,7 +459,7 @@
             this.root.innerHTML = `
                 <div class="vc-complete-banner">
                     <strong>✓ Vernier Caliper Completed</strong>
-                    <p style="margin:8px 0 0;color:var(--text-muted);">Four readings recorded. Average pulley diameter: <strong style="color:var(--accent)">${avg.toFixed(2)} cm</strong></p>
+                    <p style="margin:8px 0 0;color:var(--text-muted);">Two readings recorded. Average pulley diameter: <strong style="color:var(--accent)">${avg.toFixed(2)} cm</strong></p>
                 </div>
             `;
         },
