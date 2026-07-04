@@ -155,13 +155,19 @@ window.goToMeasurementsTab = () => {
     switchTab({ currentTarget: btn }, 'simulation');
 };
 
-function showExperimentLockToast() {
+// --- CUSTOM IN-APP NOTIFICATIONS (REPLACES DEFAULT ALERTS) ---
+function showCustomToast(message) {
     const toast = document.getElementById('experiment-lock-toast');
     if (!toast) return;
-    toast.textContent = 'Complete all required measurements before accessing the experiment.';
+    toast.textContent = message;
     toast.classList.add('visible');
-    clearTimeout(showExperimentLockToast._timer);
-    showExperimentLockToast._timer = setTimeout(() => toast.classList.remove('visible'), 3500);
+    clearTimeout(showCustomToast._timer);
+    showCustomToast._timer = setTimeout(() => toast.classList.remove('visible'), 3500);
+}
+
+// Overwrite the existing function to use the new flexible toast handler
+function showExperimentLockToast() {
+    showCustomToast('Complete all required measurements before accessing the experiment.');
 }
 
 window.unlockExperimentTab = () => {
@@ -175,9 +181,9 @@ window.unlockExperimentTab = () => {
 };
 
 window.switchTab = (evt, tabId) => {
-    // Prevent clicking locked tabs
+    // Prevent clicking locked tabs and show custom toast instead of alert
     if (tabId === 'calculation' && evt && evt.currentTarget.classList.contains('tab-btn-locked')) {
-        alert("Please complete the simulation and process the results first.");
+        showCustomToast("Please complete the simulation and process the results first.");
         return;
     }
 
@@ -212,12 +218,16 @@ function drawPrecisionScales(t1, t2) {
 
 window.updateSim = (mode) => {
     if (!isExperimentUnlocked()) {
-        return alert("Complete all required measurements in the Measurements tab before running the experiment.");
+        return showCustomToast("Complete all required measurements in the Measurements tab before running the experiment.");
     }
     const l_in = document.getElementById('pin-sep').value;
     const d_in = document.getElementById('pulley-d').value;
     const r_in = document.getElementById('rod-d').value;
-    if (!l_in || !d_in || !r_in) return alert("Rod and pulley diameters must be obtained from instrument measurements. Complete the Measurements tab first.");
+    
+    if (!l_in || !d_in || !r_in) {
+        return showCustomToast("Rod and pulley diameters must be obtained from instrument measurements. Complete the Measurements tab first.");
+    }
+    
     if (mode === 'rem' && currentMass <= 0) return;
 
     if (mode === 'add') {
@@ -225,12 +235,12 @@ window.updateSim = (mode) => {
         const testPhi = calculatePhi(currentMass + 0.5, parseFloat(l_in), parseFloat(d_in), parseFloat(r_in), document.getElementById('material').value);
         // Scale 2 rotates faster (phi * 1.4). The maximum reading on the visual scale is 50°.
         if (testPhi * 1.4 >= 49) {
-            return alert("Cannot add more weight. The pointer will exceed the maximum scale limit (50°). Proceed to plot the graph with current readings.");
+            return showCustomToast("Cannot add more weight. The pointer will exceed the maximum scale limit (50°). Proceed to plot the graph with current readings.");
         }
         
         // Hard physical limit of hanger
         if (currentMass >= 5.0) {
-            return alert("Maximum weight hanger capacity (5.0 kg) reached.");
+            return showCustomToast("Maximum weight hanger capacity (5.0 kg) reached.");
         }
     }
 
@@ -289,7 +299,7 @@ function renderTable() {
 
 window.generateFinalResults = () => {
     if (!isExperimentUnlocked()) {
-        return alert("Complete all required measurements before viewing analysis.");
+        return showCustomToast("Complete all required measurements before viewing analysis.");
     }
     if (typeof MeasurementsHub !== 'undefined') {
         MeasurementsHub.markExperimentPerformed();
