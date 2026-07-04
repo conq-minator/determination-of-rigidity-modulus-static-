@@ -18,7 +18,7 @@ function calculatePhi(mass, L_cm, D_cm, rod_d_mm, materialKey) {
     return (180 * l * d_pulley * g * mass) / (Math.pow(Math.PI, 2) * Math.pow(r_rod, 4) * eta);
 }
 
-// --- APP STATE ---
+// --- APP STATE --
 let currentMass = 0;
 let tableData = {}; 
 let myChart = null;
